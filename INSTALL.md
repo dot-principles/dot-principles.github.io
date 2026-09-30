@@ -24,13 +24,18 @@ cd dot-principles
 
 ## 2. Install into your project
 
-`.principles` is a **repo-local** install - there is no global install. A `<dir>` argument is always required. The primary command installs everything at once:
+`.principles` is a **repo-local** install - there is no global install. A `<dir>` argument is always required. The installer is interactive: it asks which AI tools you use (Copilot, Claude Code, Codex) and whether to enable review integration (Copilot Code Review, Claude Code Review).
+
+| Command | What it does |
+|---------|--------------|
+| `./install.sh <dir>` | Interactive first install: choose tools and review integration |
+| `./install.sh vendor <dir>` | Non-interactive refresh: reinstalls the skills and re-vendors the catalog, keeping the choices recorded in `.agents/principles-catalog/install.cfg` |
+| `./install.sh --list <dir>` | Show what is installed in `<dir>` |
 
 ### Linux / macOS
 
 ```bash
-# Install all tools into a project
-./install.sh all <project-dir>
+./install.sh <project-dir>
 ```
 
 ### Windows
@@ -44,13 +49,13 @@ Windows users need bash on `PATH`. The repo ships thin wrapper scripts for both 
 **PowerShell:**
 
 ```powershell
-.\install.ps1 all C:\projects\my-app
+.\install.ps1 C:\projects\my-app
 ```
 
 **Command Prompt:**
 
 ```cmd
-install.cmd all C:\projects\my-app
+install.cmd C:\projects\my-app
 ```
 
 > **Path note:** `install.cmd` / `uninstall.cmd` normalize backslashes to forward slashes before calling bash. `install.ps1` / `uninstall.ps1` convert `C:\...` paths to a bash-friendly absolute path.
@@ -59,85 +64,57 @@ install.cmd all C:\projects\my-app
 
 ## 3. What gets installed
 
-`install.sh all <dir>` writes the following files into `<dir>`:
+The installer writes the following into `<dir>`:
 
-| File | Purpose |
-|------|---------|
-| `.claude/commands/dot-scout.md` | `/dot-scout` slash command for Claude Code |
-| `.claude/commands/dot-audit.md` | `/dot-audit` slash command for Claude Code |
-| `.github/prompts/dot-scout.prompt.md` | `/dot-scout` in VS Code / JetBrains Copilot Chat |
-| `.github/prompts/dot-audit.prompt.md` | `/dot-audit` in VS Code / JetBrains Copilot Chat |
-| `.github/skills/dot-scout/SKILL.md` | `/dot-scout` in Copilot CLI |
-| `.github/skills/dot-audit/SKILL.md` | `/dot-audit` in Copilot CLI |
-| `.agents/skills/dot-scout/SKILL.md` | `$dot-scout` in Codex CLI and Codex IDE |
-| `.agents/skills/dot-audit/SKILL.md` | `$dot-audit` in Codex CLI and Codex IDE |
-| `.principles-catalog/` | Vendored principle data (see Section 4) |
+| File | Installed | Purpose |
+|------|-----------|---------|
+| `.agents/skills/dot-scout/SKILL.md`, `.agents/skills/dot-audit/SKILL.md` | Always | The two commands. Copilot CLI, Copilot IDE and Codex read `.agents/skills/` natively (`/dot-scout` in Copilot, `$dot-scout` in Codex) |
+| `.agents/principles-catalog/` | Always | Vendored principle data (see Section 4) |
+| `.claude/commands/dot-scout.md`, `.claude/commands/dot-audit.md` | If you select Claude Code | Thin `/dot-scout` and `/dot-audit` slash commands that delegate to the skills |
 
-**Commit all of these files** so every team member gets the commands automatically:
+`dot-scout` later writes the `.principles` files, `.agents/principles-catalog/active.md` and, for the review integrations you enabled, `.github/instructions/*.instructions.md` (Copilot) and `REVIEW.md` (Claude).
+
+**Commit these files** so every team member and CI environment gets the commands and catalog:
 
 ```bash
 cd <project-dir>
-git add .claude/ .github/ .agents/ .principles-catalog/
-git commit -m "Add .principles AI commands and principle files"
-```
-
-You can also install a subset, or use interactive mode:
-
-```bash
-# Interactive - select which tools to install
-./install.sh <dir>
-
-# Claude Code commands only
-./install.sh claude <dir>
-
-# Copilot CLI skills only
-./install.sh copilot-cli <dir>
-
-# Copilot IDE prompts only
-./install.sh copilot-ide <dir>
-
-# Copilot CLI + IDE (same as copilot-cli + copilot-ide)
-./install.sh copilot <dir>
-
-# Codex skills only
-./install.sh codex <dir>
-
-# Show what's installed
-./install.sh --list <dir>
+git add .agents/
+git add .claude/     # only if you selected Claude Code
+git commit -m "Add .principles AI commands and principle catalog"
 ```
 
 ---
 
-## 4. Vendor subcommand - `.principles-catalog/`
+## 4. Vendor subcommand - `.agents/principles-catalog/`
 
-The `vendor` subcommand copies the subset of the principle catalog referenced by the project's `.principles` files into `<dir>/.principles-catalog/`:
+The `vendor` subcommand copies the principle catalog data the commands need into `<dir>/.agents/principles-catalog/`:
 
 ```bash
 ./install.sh vendor <project-dir>
 ```
 
-`install.sh all` runs `vendor` automatically. You only need to run it manually if you add new principles to your `.principles` files after the initial install.
+The interactive installer runs `vendor` automatically. Run it manually after upgrading `.principles`, or after adding or changing an extra catalog.
 
-As part of vendoring, `install.sh vendor` also generates `<dir>/.principles-catalog/index.tsv` - a pipe-delimited flat file (`ID|LAYER|SUMMARY`, one line per principle) covering every vendored principle. `dot-scout` reads this single file to resolve active principles and emit per-group files in one pass, without walking hundreds of individual namespace files. Example entries:
+As part of vendoring, `install.sh vendor` also generates `<dir>/.agents/principles-catalog/index.tsv` - a pipe-delimited flat file (`ID|LAYER|SUMMARY`, one line per principle) covering every vendored principle. `dot-scout` reads this single file to resolve active principles and emit the review files in one pass, without walking hundreds of individual namespace files. Example entries:
 
 ```
 CODE-SEC-VALIDATE-INPUT|1|Validate all input at every system boundary; never trust external data.
 DDD-AGGREGATE|2|Enforce business invariants within a single aggregate boundary per transaction.
 ```
 
-**Why commit `.principles-catalog/`?** The installed commands (`dot-scout`, `dot-audit`) reference `.principles-catalog/` inside the project. Committing this directory means the commands work for every team member - even without access to the `.principles` repo - and the CI/CD environment gets the same principle data.
+**Why commit `.agents/principles-catalog/`?** The installed commands (`dot-scout`, `dot-audit`) read it from inside the project. Committing it means the commands work for every team member - even without access to the `.principles` repo - and CI gets the same principle data.
 
-`.principles-catalog/` contains the same file structure as the `principles/` directory in this repo, filtered to the namespaces and groups your project actually uses.
+It holds the groups, layers, `index.tsv` and the per-namespace `.context-*.md` files. The individual principle files are not copied; only what the commands read at runtime.
 
 ---
 
 ## 5. Claude Code
 
-After `install.sh all <dir>`, Claude Code slash commands are written to `<dir>/.claude/commands/`. Claude Code discovers these automatically when opened in that project directory.
+If you select Claude Code in the installer, slash commands are written to `<dir>/.claude/commands/`. Claude Code discovers these automatically when opened in that project directory.
 
-**Per-group files:** After running `dot-scout`, per-group principle files are emitted to `.claude/rules/` with `paths:` frontmatter targeting the relevant file types. Claude Code reads everything in `.claude/rules/` as always-on context - no further configuration needed.
+**Review file:** If you enable Claude Code Review, `dot-scout` writes a `REVIEW.md` at the git root, grouped into Critical, Important and Style sections. Claude Code Review reads it automatically.
 
-Run `dot-scout` once per project to populate `.principles` files and emit per-group principle files:
+Run `dot-scout` once per project to populate `.principles` files and emit the review files:
 
 ```
 # Claude / Copilot:
@@ -153,37 +130,15 @@ $dot-audit
 
 ## 6. GitHub Copilot
 
-### Copilot CLI (`install.sh copilot-cli <dir>`)
+Copilot CLI and the Copilot IDE extensions (VS Code, JetBrains, Visual Studio) read the skills from `.agents/skills/` natively, so no Copilot-specific files are written. Copilot CLI exposes them as `@dot-scout` and `@dot-audit`; the IDE extensions as `/skills:dot-scout` and `/skills:dot-audit`.
 
-Writes skill files into `.github/skills/`:
-
-| File | Consumed by |
-|------|-------------|
-| `.github/skills/<name>/SKILL.md` | Copilot CLI (terminal slash commands) |
-
-### Copilot IDE (`install.sh copilot-ide <dir>`)
-
-Writes prompt files into `.github/prompts/`:
-
-| File | Consumed by |
-|------|-------------|
-| `.github/prompts/<name>.prompt.md` | VS Code / JetBrains / Visual Studio Copilot Chat |
-
-The `copilot` sub-command installs both CLI skills and IDE prompts. This repo ships with pre-populated `.github/prompts/` and `.github/skills/` directories so contributors working in this repo get `dot-scout` and `dot-audit` without running the installer.
-
-**Per-group files:** After `dot-scout`, one file per active `@group` is written to `.github/instructions/` with `applyTo:` frontmatter listing the file globs for that group. Copilot Code Review activates each file only when reviewing paths that match its globs - keeping each file within the context budget.
+**Review files:** After `dot-scout`, one file per active `@group` is written to `.github/instructions/` with `applyTo:` frontmatter listing the file globs for that group. Copilot Code Review activates each file only when reviewing paths that match its globs - keeping each file within the context budget.
 
 ---
 
 ## 7. Codex
 
-`install.sh all <dir>` (or `install.sh codex <dir>`) writes repo-scoped Codex skills into `.agents/skills/`:
-
-| File | Consumed by |
-|------|-------------|
-| `.agents/skills/<name>/SKILL.md` | Codex CLI and Codex IDE extension |
-
-Codex reads repo skills from `.agents/skills/`. After install, invoke the workflows as `$dot-scout` and `$dot-audit` in Codex.
+Codex reads repo skills from `.agents/skills/`, which every install writes. After install, invoke the workflows as `$dot-scout` and `$dot-audit` in Codex CLI or the Codex IDE extension.
 
 ---
 
@@ -195,12 +150,11 @@ Codex reads repo skills from `.agents/skills/`. After install, invoke the workfl
 ```
 
 The uninstaller:
-- Removes per-group principle files from `.github/instructions/` and `.claude/rules/` (files with `<!-- generated by dot-scout -->` marker)
+- Removes the generated review files: `.github/instructions/*.instructions.md` and `REVIEW.md` (only files with the `<!-- generated by dot-scout -->` marker; files you wrote yourself are kept)
 - Removes `.claude/commands/dot-scout.md` and `dot-audit.md`
-- Removes `.github/skills/dot-scout/`, `dot-audit/` and `.github/prompts/*.prompt.md`
 - Removes `.agents/skills/dot-scout/` and `dot-audit/`
-- Removes `.principles-catalog/`
-- Cleans up legacy assets: `.ai/`, compiled blocks from `AGENTS.md`/`CLAUDE.md`/`copilot-instructions.md`
+- Removes `.agents/principles-catalog/`
+- Cleans up legacy assets: `.claude/rules/` files from older `dot-scout` versions, `.github/skills/`, `.github/prompts/`, `.principles-catalog/`, `.ai/`, compiled blocks from `AGENTS.md`/`CLAUDE.md`/`copilot-instructions.md`
 - Removes legacy `~/.principles` if present from an older install
 
 On Windows, use `uninstall.ps1` or `uninstall.cmd` with the same arguments.
@@ -226,13 +180,13 @@ my-principles/
     └── acme-backend.yaml    ← optional @group alias
 ```
 
-Three sources are merged automatically when you run `install.sh vendor` or any install subcommand:
+Three sources are merged automatically when you run `install.sh vendor` or the interactive installer:
 
-| Source | How |
-|--------|-----|
-| **CLI flag** | `--extra-catalog <path>` - repeatable, highest priority |
-| **Project config** | `<project-dir>/.principles-extra` - one path per line |
-| **User config** | `~/.principles-extra` - one path per line, applies to all your projects |
+| Order | Source | How |
+|-------|--------|-----|
+| 1 | **User config** | `~/.principles-extra` - one path per line, applies to all your projects |
+| 2 | **Project config** | `<project-dir>/.principles-extra` - one path per line, committed with the project |
+| 3 | **CLI flag** | `--extra-catalog <path>` - repeatable, for one-off and CI use |
 
 All sources are additive. Built-in namespaces (`solid`, `gof`, `ddd`, etc.) are always present and cannot be overridden.
 
@@ -249,7 +203,7 @@ PTAC-PLAIN-TEXT-FIRST
 
 ### Conflict rules
 
-- **Duplicate namespaces**: the first-registered source wins (built-in > user config > project config > CLI). A warning is printed; the duplicate is skipped.
+- **Duplicate namespaces**: the first-registered source wins, in the order above (built-in first, then user config, project config, CLI). A warning is printed; the duplicate is skipped and its principles stay out of `index.tsv`.
 - **Duplicate groups**: same rule - first wins.
 - Extra catalogs cannot override built-in namespaces.
 
@@ -333,7 +287,7 @@ Corporate and personal catalogs work simultaneously - just register both:
 ~/.personal-principles
 ```
 
-Both are merged into `.principles-catalog/` at vendor time. As long as namespaces are unique (e.g., `acme/` vs `personal/`), there are no conflicts.
+Both are merged into `.agents/principles-catalog/` at vendor time. As long as namespaces are unique (e.g., `acme/` vs `personal/`), there are no conflicts.
 
 ### Versioning your extra catalog
 
@@ -356,7 +310,7 @@ Each developer pulls updates and re-vendors their projects. CI environments clon
 
 ```bash
 ./install.sh vendor my-project --extra-catalog ~/acme-principles
-./install.sh all    my-project --extra-catalog ~/acme-principles --extra-catalog ~/.personal-principles
+./install.sh vendor my-project --extra-catalog ~/acme-principles --extra-catalog ~/.personal-principles
 ```
 
 ### Windows notes
@@ -384,33 +338,13 @@ Backslashes in `--extra-catalog` paths are converted automatically; backslashes 
 
 ---
 
-## 12. Try it on a branch first
+## 12. After installing
 
-Not ready to commit to a project? Install locally into a throwaway branch:
-
-```bash
-cd ~/projects/my-app
-git checkout -b try-principles
-
-# Install into this project directory only
-/path/to/.principles/install.sh all .
-# or on Windows:
-# \path\to\.principles\install.ps1 all .
-
-# Run /dot-scout and /dot-audit - explore without touching your main branch
-# When done, delete the branch to remove everything
-git checkout main && git branch -D try-principles
-```
-
----
-
-## 13. After installing
-
-Open your AI tool and run the commands:
+Open your AI tool and run the commands. Tip: to try it without commitment, install on a throwaway branch and delete the branch afterwards.
 
 ```
 # Claude / Copilot:
-/dot-scout              → detect project profile, create .principles files, emit per-group principle files
+/dot-scout              → detect project profile, create .principles files, emit review files
 /dot-audit              → review code with severity-categorized findings
 /dot-audit DDD on src/  → force specific principles, ignoring .principles files
 

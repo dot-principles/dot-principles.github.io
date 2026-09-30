@@ -12,12 +12,12 @@ You can get from curious to first use in one short path:
 From this repository:
 
 ```bash
-./install.sh all <project-dir>
+./install.sh <project-dir>
 ```
 
-That installs the command files for the supported agent environments and vendors the required catalog data into the target repo.
+The installer asks which agent environments you use (Copilot, Claude Code, Codex) and whether to enable code-review integration. It installs the command files and vendors the required catalog data into the target repo. Re-run `./install.sh vendor <project-dir>` later to refresh without questions.
 
-If you are on Windows, or if you want a narrower install target such as Copilot-only or Codex-only, use the full guide:
+If you are on Windows, use the full guide:
 
 - [`INSTALL.md`](https://github.com/dot-principles/dot-principles.github.io/blob/main/INSTALL.md)
 
@@ -27,8 +27,9 @@ The commands are repo-local. Commit them so every teammate and every CI environm
 
 ```bash
 cd <project-dir>
-git add .claude/ .github/ .agents/ .principles-catalog/
-git commit -m "Add .principles AI commands and principle files"
+git add .agents/
+git add .claude/     # only if you selected Claude Code
+git commit -m "Add .principles AI commands and principle catalog"
 ```
 
 ## 3. Run `dot-scout`

@@ -48,10 +48,15 @@ dot-audit   → check whether the result reflects those rules
 These are agent commands, not traditional CLI subcommands. You can usually describe the target naturally.
 
 ```text
-/dot-audit current changes
-/dot-audit the payment module
-/dot-audit @ddd src/orders
+/dot-audit current changes          # only what changed since the last commit
+/dot-audit the payment module       # a subtree
+/dot-audit DDD on src/orders        # force a group, ignoring .principles files
+/dot-audit src/orders --with ddd    # same, flag syntax
+/dot-audit @ddd src/orders          # same, group-prefix syntax
+/dot-audit clean-arch, solid on src # several groups
 ```
+
+In Codex, use `$dot-audit` instead of `/dot-audit`.
 
 ## See the full walkthrough
 

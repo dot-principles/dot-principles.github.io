@@ -16,3 +16,9 @@ jobs:
         run: ./tests/check-audit-gates.sh
       - name: Verify retired command migration
         run: bash ./tests/check-retired-prime.sh
+      - name: Verify extra-catalog index
+        run: bash ./tests/check-extra-index.sh
+      - name: Verify uninstall removes generated review files
+        run: bash ./tests/check-uninstall-generated.sh
+      - name: Verify documentation has no stale references
+        run: bash ./tests/check-stale-docs.sh

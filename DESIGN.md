@@ -8,7 +8,7 @@ This document describes the full architecture of the `.principles` hierarchy sys
 
 **What it is:** A portable, project-local configuration system that tells AI agents which engineering principles apply to your project - whether the file being worked on is source code, documentation, infrastructure, configuration, a schema, or a pipeline. Similar in spirit to `.gitignore`, but for engineering guidance.
 
-**Philosophy:** `.principles` does not teach the AI anything - the AI already knows SOLID, OWASP, DDD, and the rest. It *focuses and triggers* that knowledge: giving the AI context about which principles matter for this codebase, delivered via per-group principle files in `.github/instructions/` (Copilot Code Review) and `.claude/rules/` (Claude Code). The AI instructions tell the agent how to behave; `.principles` tells it which engineering lens to apply.
+**Philosophy:** `.principles` does not teach the AI anything - the AI already knows SOLID, OWASP, DDD, and the rest. It *focuses and triggers* that knowledge: giving the AI context about which principles matter for this codebase, delivered via per-group principle files in `.github/instructions/` (Copilot Code Review) and a `REVIEW.md` (Claude Code Review). The AI instructions tell the agent how to behave; `.principles` tells it which engineering lens to apply.
 
 > See [DISCLAIMER.md](DISCLAIMER.md) - this is a proof of concept. Groups are opinionated, gaps exist, and the catalog is not exhaustive.
 
@@ -30,14 +30,7 @@ This document describes the full architecture of the `.principles` hierarchy sys
 
 ### Public documentation layer
 
-This repository now also contains an in-repo public documentation site built with VitePress.
-
-- `.vitepress/` holds the site configuration and theme wiring.
-- `content/` is the VitePress source directory for visitor-facing docs pages.
-- `docs/` is reserved for docs-about-docs material such as ADRs and authoring guidance.
-- `README.md`, `INSTALL.md`, `DESIGN.md`, and `demo/presentation.md` remain the canonical deep references and are linked from the public site rather than copied wholesale.
-
-This follows the same design principle as the rest of the repo: public guidance stays plain-text, version-controlled, and colocated with the product it describes. The documentation site is a presentation layer for discoverability and onboarding, not a second source of truth.
+The repository contains an in-repo public documentation site built with VitePress: `content/` holds the visitor-facing pages, `.vitepress/` the configuration. `README.md`, `INSTALL.md`, `DESIGN.md`, and `demo/presentation.md` stay canonical; the site links to them rather than copying them. Ownership rules and the rationale are in [docs/README.md](docs/README.md) and [ADR-0001](docs/decisions/0001-public-docs-site.md).
 
 ---
 
@@ -138,7 +131,7 @@ The command reads one file per namespace and filters to only the entries in the 
 
 ### `.agents/principles-catalog/` - vendored project subset
 
-When `install.sh vendor <dir>` (or the interactive installer) is run, it copies the subset of `principles/` and `groups/` referenced by the project's `.principles` files into `<dir>/.agents/principles-catalog/`. This directory mirrors the structure of the full catalog but contains only the namespaces and groups the project actually uses. It also generates `index.tsv` - a flat pipe-delimited file listing every vendored principle in `ID|LAYER|SUMMARY` format, one line per principle. `dot-scout` reads this single file to compile the active block without walking individual namespace files.
+When `install.sh vendor <dir>` (or the interactive installer) is run, it copies the subset of `principles/` and `groups/` referenced by the project's `.principles` files into `<dir>/.agents/principles-catalog/`. This directory mirrors the structure of the full catalog but contains only the namespaces and groups the project actually uses. It also generates `index.tsv` - a flat pipe-delimited file listing every vendored principle in `ID|LAYER|SUMMARY` format, one line per principle. `dot-scout` reads this single file to resolve the active set without walking individual namespace files.
 
 **Commit `.agents/principles-catalog/` to your repo.** The installed commands reference it as their data source. With it committed, every team member and CI environment gets the correct principle data without needing access to the `.principles` repo.
 
@@ -161,15 +154,15 @@ my-principles/
 
 Three sources of extra catalogs are collected automatically during `install.sh vendor`:
 
-| Source | Precedence | How |
-|--------|-----------|-----|
-| `~/.principles-extra` | Lowest | User-level; one path per line; applies to all projects |
-| `<project>/.principles-extra` | Middle | Project-level; committed to the project repo |
-| `--extra-catalog <path>` | Highest | CLI flag; repeatable; ad-hoc or CI use |
+| Order | Source | How |
+|-------|--------|-----|
+| 1 | `~/.principles-extra` | User-level; one path per line; applies to all projects |
+| 2 | `<project>/.principles-extra` | Project-level; committed to the project repo |
+| 3 | `--extra-catalog <path>` | CLI flag; repeatable; ad-hoc or CI use |
 
-All sources are merged into `.agents/principles-catalog/` at vendor time. Built-in namespaces (`solid`, `gof`, `ddd`, etc.) cannot be overridden - extra catalog entries for the same namespace are skipped with a warning.
+All sources are merged into `.agents/principles-catalog/` at vendor time. Registration is **first wins, in the order above**: built-in namespaces and groups are registered first and can never be overridden, and if two extra catalogs define the same namespace or group, the earlier source keeps it. A skipped namespace or group is reported with a warning and is left out of `index.tsv` too.
 
-The `generate_compact_index()` step scans individual principle `.md` files from extra catalog source directories in addition to `$SCRIPT_DIR/principles`, so extra principles appear in `index.tsv` and are visible to `dot-scout`.
+The `generate_compact_index()` step scans principle `.md` files from every extra catalog namespace that was registered, in addition to `$SCRIPT_DIR/principles`, so extra principles appear in `index.tsv` and are visible to `dot-scout`. `TEMPLATE.md` files are never indexed.
 
 See [INSTALL.md §10](INSTALL.md#10-installing-an-extra-catalog) for setup instructions. A complete working example lives in `examples/personal-principles/`. A starter template lives in `templates/extra-catalog/`.
 
@@ -212,7 +205,9 @@ The namespace is the directory name. IDs are derived from file paths (see Sectio
 
 ## 3. Per-group principle files
 
-After `dot-scout` writes `.principles` files, Phase 8 emits **per-group principle files** into `.github/instructions/` (for GitHub Copilot Code Review) and `.claude/rules/` (for Claude Code). Each file targets a specific set of file globs using tool-native frontmatter, giving each group its own context budget.
+After `dot-scout` writes `.principles` files, its Phase 8 emits **per-group principle files** into `.github/instructions/` (for GitHub Copilot Code Review) and a single `REVIEW.md` at the git root (for Claude Code Review). Copilot files target specific file globs using tool-native frontmatter, giving each group its own context budget.
+
+> **Numbering:** `dot-scout` and `dot-audit` number their phases independently. "Phases 8-10" in the tests and in `AGENTS.md` always means `dot-audit`'s gated fix, commit and pull-request workflow; `dot-scout` Phase 8 is the file emission described here.
 
 The `**Summary:**` field from each principle file is extracted verbatim into `.agents/principles-catalog/index.tsv` by `install.sh vendor`; Phase 8 reads `index.tsv` once (not per-namespace files) to build all files in a single pass.
 
@@ -232,21 +227,23 @@ applyTo:
 - PRINCIPLE-ID: Summary text here
 ```
 
-**Claude Code** (`.claude/rules/<group>.md`):
+**Claude Code Review** (`REVIEW.md` at the git root, one file, about 10,000 characters maximum):
 
 ```markdown
 <!-- generated by dot-scout vVERSION - do not edit manually, re-run dot-scout to refresh -->
----
-paths:
-  - "**/*.java"
----
-# Group Name Principles
+# Code Review Rules
 
+## Critical - Always flag these
 - PRINCIPLE-ID: Summary text here
+
+## Important - Flag when violated
+- PRINCIPLE-ID: Summary text here
+
+## Style - Flag as nits
 - PRINCIPLE-ID: Summary text here
 ```
 
-Same content, different frontmatter key (`applyTo:` vs `paths:`). Each file targets only the file types relevant to its group.
+The Critical section holds security and fail-fast principles, Important holds domain and architecture principles, Style holds code-quality principles. If the budget is exceeded, Style is truncated first.
 
 The `<!-- generated by dot-scout` marker identifies files managed by `dot-scout`. Files without this marker are user-created and never touched. On re-run, stale marked files (from groups no longer active) are deleted.
 
@@ -268,14 +265,14 @@ Groups that `includes:` other groups inherit the included group's `globs:` (unio
 
 ### Delivery targets
 
-| Directory | Consumer | Naming | Glob key |
-|-----------|----------|--------|----------|
-| `.github/instructions/` | GitHub Copilot Code Review | `<group>.instructions.md` | `applyTo:` |
-| `.claude/rules/` | Claude Code | `<group>.md` | `paths:` |
+| Path | Consumer | Naming | Scoping |
+|------|----------|--------|---------|
+| `.github/instructions/` | GitHub Copilot Code Review | `<group>.instructions.md` | `applyTo:` frontmatter |
+| `REVIEW.md` (git root) | Claude Code Review | one file | severity sections |
 
-Both tools auto-discover files in their respective directories. No additional configuration is needed.
+Both tools auto-discover these files. No additional configuration is needed.
 
-A `principles-core` file is always emitted in both directories with `applyTo: "**/*"` / `paths: "**/*"`, containing Layer 1 universal principles, stack Layer 1 principles, and any bare IDs not belonging to an active group.
+A `principles-core.instructions.md` file is always emitted with `applyTo: "**/*"`, containing Layer 1 universal principles, stack Layer 1 principles, and any bare IDs not belonging to an active group.
 
 ### Two-tier context system
 
@@ -283,17 +280,26 @@ Per-group files act as **tier 1** context - always present, always fast. They ar
 
 | Tier | Source | Loaded by |
 |------|--------|-----------|
-| 1 - Per-group files | Emitted to `.github/instructions/` and `.claude/rules/` by `dot-scout` | `dot-audit` and passive code-review integrations |
+| 1 - Generated review files | `.github/instructions/` and `REVIEW.md`, emitted by `dot-scout` | `dot-audit` and passive code-review integrations |
 | 2 - Namespace context | `.context-audit.md` per namespace | `dot-audit` Phase 4 |
 | 3 - Inspection patterns | `.context-inspect.md` per namespace | `dot-audit` Phase 5 only |
 
-`dot-audit` checks per-group files first (tier 1) then loads the relevant namespace context files (tier 2) for full principle guidance. Per-group files avoid tree-walking `.principles` files on every invocation.
+`dot-audit` checks the generated files first (tier 1) then loads the relevant namespace context files (tier 2) for full principle guidance. Per-group files avoid tree-walking `.principles` files on every invocation.
 
 ---
 
 ## 4. Artifact types and stacks
 
 The layer model is not a single three-layer stack - it is a family of stacks, one per artifact type. The correct stack is selected by detecting the artifact type of the file being reviewed.
+
+Within each stack:
+
+| Layer | When | What |
+|-------|------|------|
+| **Universal (cross-stack)** | Always, for all artifact types | DRY, KISS, YAGNI, naming, reveals intention, ADRs |
+| **Layer 1 - Universal** | Always, for the matched artifact type | Non-negotiable principles for that type (code: SOLID, fail-fast; docs: `DOC-PURPOSE`, `DOC-MINIMAL`) |
+| **Layer 2 - Contextual** | Based on content signals | API design, concurrency, data modeling, tutorial vs. reference docs |
+| **Layer 3 - Risk-elevated** | Based on risk signals | Security, performance, backward compatibility (code and infra stacks only) |
 
 ### Artifact Types (`layers/artifact-types.yaml`)
 
@@ -398,12 +404,12 @@ IDs are **derived from file path** - no separate ID field is needed in the file 
 Every principle file follows this template:
 
 ````markdown
-# [ID]: [Title]
+# [ID] - [Title]
 
-**Layer**: [1 | 2 | 3]
-**Categories**: [comma-separated]
-**Applies-to**: [all | comma-separated - languages, platforms, domains, or contexts]
-**Summary**: [One actionable sentence - max ~15 words, written as a rule]
+**Layer:** [1 | 2 | 3]
+**Categories:** [comma-separated]
+**Applies-to:** [all | comma-separated - languages, platforms, domains, or contexts]
+**Summary:** [One actionable sentence - max ~15 words, written as a rule]
 
 ## Principle
 
@@ -445,6 +451,8 @@ Every principle file follows this template:
 | `Inspection`           | Optional. Machine-executable pre-scan commands for `dot-audit` Phase 5. See guidance below |
 | `Good practice`        | Positive example (AI uses this for generation guidance)                    |
 | `Sources`              | At least one verifiable published source                                   |
+
+> **Header is parsed.** `install.sh vendor` builds `index.tsv` from the first line (`# ID - Title`, uppercase ID followed by a space), `**Layer:**` and `**Summary:**` (colon inside the bold). A file missing any of the three is silently left out of the index, so `dot-scout` never sees it.
 
 **Diagrams:** Include a `mermaid` code block in the *Good practice* section whenever the concept has a structural form (class hierarchies, relationships, flows). Mermaid adds machine-readable semantics. If you can draw it, draw it.
 
@@ -661,7 +669,7 @@ Reviews code against activated principles. Outputs findings grouped by severity.
 
 ### `dot-scout`
 
-Analyses a project directory and creates or updates `.principles` files, then compiles and injects the active principle set.
+Analyses a project directory and creates or updates `.principles` files, then writes the active principle list (`active.md`) and the generated review files (`.github/instructions/`, `REVIEW.md`).
 
 **Phases:**
 
@@ -716,7 +724,7 @@ Follow the instructions in `.agents/skills/<slug>/SKILL.md`.
 
 Claude Code discovers slash commands by scanning `.claude/commands/` for `.md` files. The wrapper delegates to the canonical skill so Claude reads the full content from `.agents/skills/`.
 
-**Per-group files:** `dot-scout` Phase 8 emits per-group principle files into `<dir>/.claude/rules/` with `paths:` frontmatter. These are runtime-generated by `dot-scout` and not installed by `install.sh`.
+**Review file:** `dot-scout` Phase 8 emits `REVIEW.md` at the git root for Claude Code Review. It is runtime-generated by `dot-scout` and not installed by `install.sh`; enable it with the `claude-review` target in the interactive installer.
 
 ### GitHub Copilot (native, no wrapper needed)
 
@@ -734,7 +742,7 @@ Codex discovers repo skills by scanning `.agents/skills/` from the current worki
 
 ### Vendor (`./install.sh vendor <dir>`)
 
-Copies the subset of `principles/` and `groups/` referenced by the project's `.principles` files into `<dir>/.agents/principles-catalog/`, and generates `<dir>/.agents/principles-catalog/index.tsv` - a pipe-delimited flat file (`ID|LAYER|SUMMARY`) of every vendored principle. Also reinstalls skills and hub blocks. Commit `.agents/principles-catalog/` to the repo.
+Copies the subset of `principles/` and `groups/` referenced by the project's `.principles` files into `<dir>/.agents/principles-catalog/`, and generates `<dir>/.agents/principles-catalog/index.tsv` - a pipe-delimited flat file (`ID|LAYER|SUMMARY`) of every vendored principle. Also reinstalls the skills. Commit `.agents/principles-catalog/` to the repo.
 
 ### Uninstall (`./uninstall.sh <dir>`)
 
@@ -742,8 +750,8 @@ Removes all assets written by `install.sh`:
 - AI skills from `<dir>/.agents/skills/` (files with `generated-by: .principles` watermark)
 - Command files from `<dir>/.claude/commands/` (files with `generated-by: .principles` watermark)
 - Vendor catalog: `<dir>/.agents/principles-catalog/`
-- Per-group principle files from `<dir>/.github/instructions/` and `<dir>/.claude/rules/` (files with `<!-- generated by dot-scout -->` marker)
-- Legacy assets: `<!-- .principles:start/end -->` hub block from `AGENTS.md`/`CLAUDE.md` (if present from earlier installs), `<dir>/.principles-catalog/`, `<dir>/.github/skills/`, `<dir>/.github/prompts/`, compiled blocks from `AGENTS.md`/`CLAUDE.md`/`copilot-instructions.md`, legacy `~/.principles`
+- Generated review files: `<dir>/.github/instructions/*.instructions.md` and `<dir>/REVIEW.md` (files with the `<!-- generated by dot-scout -->` marker)
+- Legacy assets: `<dir>/.claude/rules/` files written by earlier `dot-scout` versions, `<!-- .principles:start/end -->` hub block from `AGENTS.md`/`CLAUDE.md` (if present from earlier installs), `<dir>/.principles-catalog/`, `<dir>/.github/skills/`, `<dir>/.github/prompts/`, compiled blocks from `AGENTS.md`/`CLAUDE.md`/`copilot-instructions.md`, legacy `~/.principles`
 
 **Content-based detection:** All generated files are identified by the `generated-by: .principles` frontmatter watermark - not by matching current command names. This makes uninstall version-agnostic: files from renamed commands are cleaned up correctly. Legacy command names are checked as a fallback for pre-watermark installs.
 
@@ -784,7 +792,7 @@ templates/
 | `description` | "Review a file, directory, or inline code against..." | All |
 | `argument-hint` | "[file\|directory\|inline-code]..." | All |
 | `allowed-tools` | "Read, Write, Glob, Grep, Bash" | All |
-| `version` | "0.14.0" | All |
+| `version` | "0.15.0" | All |
 | `authors` | "Flemming N. Larsen (...)" | All |
 | `generated-by` | `.principles` | All |
 | `name` | "dot-audit" | Agents (canonical skills) |

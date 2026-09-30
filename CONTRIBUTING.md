@@ -2,7 +2,7 @@
 
 > **Scope:** Principles contributed here must be **established, widely recognized concepts** from the software engineering literature - named principles, published patterns, or documented practices backed by authoritative sources. They must not duplicate what is already in the catalog.
 >
-> If your principle is original, company-specific, domain-niche, or doesn't have an authoritative published source, **fork this repo** and add it in your own namespace (e.g., `principles/corp/`) rather than submitting a PR.
+> If your principle is original, company-specific, domain-niche, or doesn't have an authoritative published source, keep it in your own **extra catalog** (see [INSTALL.md §10](INSTALL.md#10-installing-an-extra-catalog)) rather than submitting a PR. No fork is needed.
 
 ## Requirements
 
@@ -13,7 +13,7 @@ Every new principle must have:
 - A clear principle description in your own words
 - At least one verifiable published source (book with ISBN, paper with DOI, or authoritative URL)
 - Correct layer assignment (1 = universal, 2 = contextual, 3 = risk-elevated)
-- **`**Summary:**` field** - one actionable sentence (max ~15 words) that states what the principle requires, written as a rule (e.g., *"Depend on abstractions, never on concrete implementations."*). Placed after `**Applies-to:**` in the file header. Required for all new principles. **This field is extracted verbatim into `.principles-catalog/index.tsv` by `install.sh vendor` and used directly in per-group principle files that AI agents see - quality matters. It must be an accurate, tight, actionable rule.**
+- **`**Summary:**` field** - one actionable sentence (max ~15 words) that states what the principle requires, written as a rule (e.g., *"Depend on abstractions, never on concrete implementations."*). Placed after `**Applies-to:**` in the file header. Required for all new principles. **This field is extracted verbatim into `.agents/principles-catalog/index.tsv` by `install.sh vendor` and used directly in per-group principle files that AI agents see - quality matters. It must be an accurate, tight, actionable rule.**
 - At least one "Violations to detect" entry
 - No significant overlap with an existing principle in the catalog
 - **Code auditability** - Every principle must have at least one violation identifiable by reading the codebase. Principles whose violations are entirely process-based (e.g., "do X before writing code"), runtime-observable, or dependent on external org/environment context are not accepted. Use `**Audit-scope:** limited` for principles that are partially auditable. See `principles/AUDIT-SCOPE.md` for examples of the boundary.

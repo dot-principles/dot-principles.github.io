@@ -6,9 +6,9 @@
     All arguments are forwarded to install.sh unchanged.
     Use forward slashes or relative paths for directory arguments.
 .EXAMPLE
-    .\install.ps1 claude
-    .\install.ps1 copilot ~/projects/my-app
-    .\install.ps1 all .
+    .\install.ps1 ~/projects/my-app
+    .\install.ps1 vendor ~/projects/my-app
+    .\install.ps1 --list ~/projects/my-app
 #>
 
 if (-not (Get-Command bash -ErrorAction SilentlyContinue)) {

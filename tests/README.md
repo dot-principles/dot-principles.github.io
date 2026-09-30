@@ -1,3 +1,3 @@
 # tests
 
-Regression tests for `.principles` tooling. Run `bash tests/check-audit-gates.sh` and `bash tests/check-retired-prime.sh` before pushing; CI runs both via `.github/workflows/audit-gates.yml`.
+Regression tests for `.principles` tooling. Run every `tests/check-*.sh` before pushing (the list is in [AGENTS.md](../AGENTS.md#tests)); CI runs them via `.github/workflows/audit-gates.yml`.

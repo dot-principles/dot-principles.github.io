@@ -122,10 +122,15 @@ Run the regression tests before pushing:
 ```bash
 ./tests/check-audit-gates.sh
 bash tests/check-retired-prime.sh
+bash tests/check-extra-index.sh
+bash tests/check-uninstall-generated.sh
+bash tests/check-stale-docs.sh
 ```
 
 All checks must pass (exit 0). These tests verify that the interactive audit workflow
-gates (Phases 8-10) remain intact and retired command assets are removed on upgrade.
+gates (Phases 8-10 of `dot-audit`) remain intact, retired command assets are removed on
+upgrade, `index.tsv` lists only vendored extra-catalog principles, uninstall removes
+scout-generated review files, and the docs do not describe removed behaviour.
 
 ---
 

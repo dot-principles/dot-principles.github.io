@@ -20,12 +20,23 @@ generate_compact_index() {
             ! -name "catalog.yaml" | sort
         for extra in "$@"; do
             [ -d "$extra/principles" ] || continue
+            # Index only namespaces that vendor_extra_catalog registered from this extra;
+            # namespaces skipped for a collision (or never vendored) stay out of index.tsv.
+            local label="${extra/#$HOME/\~}"
             find "$extra/principles" -name "*.md" \
                 ! -name ".context-*.md" \
+                ! -name "TEMPLATE.md" \
                 ! -name "AUDIT-SCOPE.md" \
                 ! -name "INDEX.md" \
                 ! -name "README.md" \
-                ! -name "catalog.yaml" | sort
+                ! -name "catalog.yaml" | sort | while IFS= read -r ef; do
+                local ns
+                ns="$(dirname "${ef#$extra/principles/}")"
+                if [ "${REGISTERED_NAMESPACES[$ns]:-}" = "$label" ] \
+                    || [ "${REGISTERED_NAMESPACES[$(dirname "$ns")]:-}" = "$label" ]; then
+                    echo "$ef"
+                fi
+            done
         done
     } | while IFS= read -r f; do
 

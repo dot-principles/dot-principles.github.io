@@ -3,3 +3,8 @@ test-samples/
 /README-org.md
 /audit-output.json
 /.agents/skills/
+
+# VitePress build output and dependencies
+/.vitepress/cache/
+/.vitepress/dist/
+/node_modules/

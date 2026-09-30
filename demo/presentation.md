@@ -15,13 +15,13 @@
 
 ## 0 · Install
 
-Before using any commands, install `.principles` into your project. This demo uses **Copilot** (CLI + IDE):
+Before using any commands, install `.principles` into your project. The installer is interactive; this demo selects **Copilot**:
 
 ```
-./install.sh copilot C:\Code\tank-royale
+./install.sh C:\Code\tank-royale
 ```
 
-This installs the `dot-scout` and `dot-audit` skills into the target project and vendors the principle catalog. See [INSTALL.md](../INSTALL.md) for the full guide (Claude Code, Codex, interactive mode, etc.). If you are still evaluating the project rather than running the demo, the visitor-oriented pages in [`content/`](../content/README.md) now provide the shorter path from concept to first use.
+This installs the `dot-scout` and `dot-audit` skills into the target project and vendors the principle catalog. See [INSTALL.md](../INSTALL.md) for the full guide (Claude Code, Codex, the `vendor` refresh, etc.). If you are still evaluating the project rather than running the demo, the visitor-oriented pages in [`content/`](../content/README.md) now provide the shorter path from concept to first use.
 
 ---
 
