@@ -26,6 +26,9 @@ RULES=(
     'retired dot-prime|dot-prime|./tests/check-retired-prime.sh'
     # Removed install targets (install.sh only knows <dir>, vendor, --list).
     'removed install targets|install\.(sh|ps1|cmd) (all|claude|copilot|copilot-cli|copilot-ide|codex) |'
+    # Catalog counters go stale on the next change; describe what exists, not how many. The scout
+    # report example is illustrative output, and a leading ≤ marks a guideline, not a count.
+    'catalog counter|(^|[^≤0-9])[0-9]{2,3} (principles|namespaces|shipped groups|groups)\b|./commands/dot/scout.md'
     # Fork is no longer the way to add company principles.
     'fork advice|[Ff]ork this repo(sitory)?(\*\*)? and add|'
 )

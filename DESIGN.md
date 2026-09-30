@@ -40,7 +40,7 @@ The `principles/` directory is a **namespace container**. Each subdirectory is a
 
 ```
 principles/
-  code/                  ← general catalog (110 principles across 11 sub-namespaces)
+  code/                  ← general catalog
     catalog.yaml         ← description only
     api/
       standard-http-methods.md
@@ -69,7 +69,7 @@ principles/
     strategy.md          → GOF-STRATEGY
     observer.md          → GOF-OBSERVER
     ...
-  ddd/                   ← Domain-Driven Design (13 principles)
+  ddd/                   ← Domain-Driven Design
     catalog.yaml         ← description only
     aggregate.md         → DDD-AGGREGATE
     repository.md        → DDD-REPOSITORY
@@ -82,11 +82,11 @@ principles/
     catalog.yaml         ← description only
     dependency-rule.md   → CLEAN-ARCH-DEPENDENCY-RULE
     ...
-  effective-java/        ← Effective Java (15 principles)
+  effective-java/        ← Effective Java
     catalog.yaml         ← description only
     static-factory.md    → EFFECTIVE-JAVA-STATIC-FACTORY
     ...
-  code-smells/           ← Fowler code smells (22 principles)
+  code-smells/           ← Fowler code smells
     catalog.yaml         ← description only
     long-method.md       → CODE-SMELLS-LONG-METHOD
     feature-envy.md      → CODE-SMELLS-FEATURE-ENVY
@@ -96,12 +96,12 @@ principles/
     information-expert.md → GRASP-INFORMATION-EXPERT
     low-coupling.md       → GRASP-LOW-COUPLING
     ...
-  12factor/              ← Twelve-Factor App (12 principles)
+  12factor/              ← Twelve-Factor App
     catalog.yaml         ← description only
     01-codebase.md       → 12FACTOR-01-CODEBASE
     02-dependencies.md   → 12FACTOR-02-DEPENDENCIES
     ...
-  owasp/                 ← OWASP Top 10 (10 principles)
+  owasp/                 ← OWASP Top 10
     catalog.yaml         ← description only
     01-broken-access-control.md  → OWASP-01-BROKEN-ACCESS-CONTROL
     02-cryptographic-failures.md → OWASP-02-CRYPTOGRAPHIC-FAILURES
@@ -127,7 +127,7 @@ Each namespace contains two pre-compiled files that consolidate its audit guidan
 
 The command reads one file per namespace and filters to only the entries in the final active set. This avoids reading N individual principle files.
 
-**`code/` sub-namespace split:** Because the `code/` namespace contains 110 principles across 11 sub-namespaces, its context files are split per sub-namespace rather than held in a single file. Each of `code/api/`, `code/ar/`, `code/cc/`, `code/cs/`, `code/dx/`, `code/ob/`, `code/pf/`, `code/rl/`, `code/sec/`, `code/tp/`, and `code/ts/` has its own `.context-audit.md` and (where applicable) `.context-inspect.md`. The root `code/.context-*.md` files contain only a pointer comment listing the sub-namespace directories. `dot-audit` uses a longest-prefix-match table to resolve `CODE-<sub>-*` IDs to the correct sub-namespace file before falling back to `code/` for unrecognised sub-prefixes.
+**`code/` sub-namespace split:** Because the `code/` namespace is large and divided into sub-namespaces, its context files are split per sub-namespace rather than held in a single file. Each of `code/api/`, `code/ar/`, `code/cc/`, `code/cs/`, `code/dx/`, `code/ob/`, `code/pf/`, `code/rl/`, `code/sec/`, `code/tp/`, and `code/ts/` has its own `.context-audit.md` and (where applicable) `.context-inspect.md`. The root `code/.context-*.md` files contain only a pointer comment listing the sub-namespace directories. `dot-audit` uses a longest-prefix-match table to resolve `CODE-<sub>-*` IDs to the correct sub-namespace file before falling back to `code/` for unrecognised sub-prefixes.
 
 ### `.agents/principles-catalog/` - vendored project subset
 
@@ -521,15 +521,15 @@ principles:
 | Group              | Includes         | Purpose                                         |
 |--------------------|------------------|-------------------------------------------------|
 | `solid`            | -                | All five SOLID principles                       |
-| `gof`              | -                | All 27 GoF entries                              |
-| `gof-creational`   | -                | 5 GoF creational patterns                       |
-| `gof-structural`   | -                | 7 GoF structural patterns                       |
-| `gof-behavioral`   | -                | 11 GoF behavioral patterns                      |
-| `ddd`              | -                | 13 Domain-Driven Design building blocks         |
+| `gof`              | -                | All Gang of Four patterns                       |
+| `gof-creational`   | -                | GoF creational patterns                         |
+| `gof-structural`   | -                | GoF structural patterns                         |
+| `gof-behavioral`   | -                | GoF behavioral patterns                         |
+| `ddd`              | -                | Domain-Driven Design building blocks            |
 | `simple-design`    | -                | Kent Beck's 4 Rules of Simple Design            |
-| `clean-arch`       | -                | 4 Clean Architecture principles                 |
-| `effective-java`   | -                | 15 Effective Java best practices                |
-| `code-smells`      | -                | 22 Fowler code smells                           |
+| `clean-arch`       | -                | Clean Architecture principles                   |
+| `effective-java`   | -                | Effective Java best practices                   |
+| `code-smells`      | -                | Fowler code smells                              |
 | `grasp`            | -                | All nine GRASP responsibility patterns          |
 | `12factor`         | -                | All twelve Twelve-Factor App practices          |
 | `owasp`            | -                | OWASP Top 10 (2021) security risks              |

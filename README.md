@@ -79,7 +79,7 @@ Start from [`templates/extra-catalog/`](templates/extra-catalog/) and read [INST
 
 ## Catalog
 
-375 principles in 32 namespaces (`CODE-*`, `SOLID-`, `GOF-`, `DDD-`, `OWASP-`, `ARCH-`, `DOC-` and more) and 53 groups. The namespace reference is in [DESIGN.md §2](DESIGN.md#2-catalog-structure) and the groups in [DESIGN.md §7](DESIGN.md#7-groups).
+Namespaces such as `CODE-*`, `SOLID-`, `GOF-`, `DDD-`, `OWASP-`, `ARCH-` and `DOC-`, plus ready-made groups for common stacks. The namespace reference is in [DESIGN.md §2](DESIGN.md#2-catalog-structure) and the groups in [DESIGN.md §7](DESIGN.md#7-groups).
 
 ## More
 

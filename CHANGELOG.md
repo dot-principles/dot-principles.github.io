@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+**Changed**
+
+- **Docs no longer state catalog counts** - README, `DESIGN.md` (namespace tree and group table) and the organization profile no longer list how many principles, namespaces or groups exist; the numbers went stale on every change. `tests/check-stale-docs.sh` now fails on new counters.
+
 ---
 
 ## [v0.15.0] - 2026-09-30
