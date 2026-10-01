@@ -4,7 +4,7 @@
 
 **Choose which engineering principles your AI agent applies - per repo, per directory, per artifact type.**
 
-> **Latest release:** [v0.15.0](https://github.com/dot-principles/dot-principles.github.io/releases/latest) - see [all releases](https://github.com/dot-principles/dot-principles.github.io/releases) and [CHANGELOG](CHANGELOG.md).
+> **Latest release:** [v0.16.0](https://github.com/dot-principles/dot-principles.github.io/releases/latest) - see [all releases](https://github.com/dot-principles/dot-principles.github.io/releases) and [CHANGELOG](CHANGELOG.md).
 > **Docs site:** [dot-principles.github.io](https://dot-principles.github.io/) - Why, Examples, Getting Started, Commands, How It Works, Extending.
 > This is a proof of concept - see [DISCLAIMER.md](DISCLAIMER.md).
 
@@ -45,7 +45,7 @@ Layers, syntax and the resolution algorithm are in [DESIGN.md §8](DESIGN.md#8-p
 
 You speak to them in natural language. Use `/dot-scout` in Claude Code and Copilot, and `$dot-scout` in Codex.
 
-- **`dot-scout`** detects the stack and artifact types, creates `.principles` files, and generates the review instruction files that agents use (`.github/instructions/` for Copilot, `REVIEW.md` for Claude).
+- **`dot-scout`** detects the stack and artifact types, creates `.principles` files, and generates the review files agents use: `.agents/instructions/review.md` (any agent that reads `AGENTS.md`), `.github/instructions/` (Copilot) and `REVIEW.md` (Claude). It asks once.
 - **`dot-audit`** reviews a scope against the active principles and groups findings by severity (Critical / High / Medium / Low).
 
 ```text
@@ -53,6 +53,8 @@ You speak to them in natural language. Use `/dot-scout` in Claude Code and Copil
 /dot-audit the payment module       → a subtree
 /dot-audit DDD on src/orders        → force a group, ignore .principles files
 ```
+
+You can also just ask your agent to review a change: it follows `.agents/instructions/review.md`, so it works the same in Claude Code, Codex CLI and Copilot CLI.
 
 See [Commands](https://dot-principles.github.io/commands) and the [demo walkthrough](demo/presentation.md).
 
@@ -76,6 +78,17 @@ Then run `/dot-scout` in your agent. Platform notes (Linux, macOS, Windows) and 
 You do not need a fork. Write an extra catalog (same structure as `principles/`) and register it in `~/.principles-extra`, in `<project>/.principles-extra`, or with `--extra-catalog`. Reference its IDs and groups from `.principles` like any built-in ones. This is the route for company standards and team conventions.
 
 Start from [`templates/extra-catalog/`](templates/extra-catalog/) and read [INSTALL.md §10](INSTALL.md#10-installing-an-extra-catalog). A working example is [`dot-principles/example-catalog`](https://github.com/dot-principles/example-catalog).
+
+### Governance
+
+An organization can publish its catalog with an `org.principles` file and reference it, pinned to a tag, from every project:
+
+```text
+:extends https://git.acme.com/acme-principles.git@v1.4.0
+@acme-backend
+```
+
+The baseline is the outermost layer of every hierarchy. Its `:lock` lines cannot be dropped with `!ID`; a team can only record a dated exception, `:waive ID until 2026-12-31 "reason"`, which every review reports. See [Governance](https://dot-principles.github.io/governance).
 
 ## Catalog
 

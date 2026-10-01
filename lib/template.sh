@@ -52,7 +52,7 @@ install_from_template() {
     fi
 
     # Source the manifest (sets TOOL_ID, TOOL_LABEL, OUTPUT_DIR, OUTPUT_FILE, PATCHES)
-    local TOOL_ID="" TOOL_LABEL="" OUTPUT_DIR="" OUTPUT_FILE="" PATCHES="" INSTALL_SUBCOMMAND=""
+    local TOOL_ID="" TOOL_LABEL="" OUTPUT_DIR="" OUTPUT_FILE="" PATCHES="" INSTALL_SUBCOMMAND="" SUPPORT_FILES=""
     # shellcheck disable=SC1090
     source "$template_dir/manifest.cfg"
     # Strip trailing CR in case manifest has Windows line endings (CRLF)
@@ -136,6 +136,21 @@ install_from_template() {
         cp "$tmp_output" "$target_path/$resolved_file"
 
         rm -f "$tmp_fm" "$tmp_body" "$tmp_output"
+
+        # 7. Reference files: commands/<dir>/.<command>-<name>.md is installed next to the output
+        #    as <name>.md (for example .audit-fix-flow.md -> fix-flow.md). Only for templates that
+        #    set SUPPORT_FILES=1. The command reads them on demand, so the main file stays small.
+        if [ "${SUPPORT_FILES%$'\r'}" = "1" ]; then
+            local ref_base ref_dir ref ref_name
+            ref_base="$(basename "$file" .md)"
+            ref_dir="$(dirname "$file")"
+            for ref in "$ref_dir"/."$ref_base"-*.md; do
+                [ -f "$ref" ] || continue
+                ref_name="$(basename "$ref")"
+                ref_name="${ref_name#.$ref_base-}"
+                sed -e "s|{{PRINCIPLES_DIRECTORY}}|.agents/principles-catalog|g"                     -e "s|{{VERSION}}|$VERSION|g" "$ref" > "$target_path/$ref_name"
+            done
+        fi
 
         count=$((count + 1))
         local display_name

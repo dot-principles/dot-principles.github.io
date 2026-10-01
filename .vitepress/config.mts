@@ -14,6 +14,7 @@ export default withMermaid(
         { text: 'How It Works', link: '/how-it-works' },
         { text: 'Commands', link: '/commands' },
         { text: 'Extending', link: '/extending' },
+        { text: 'Governance', link: '/governance' },
       ],
       sidebar: [
         { text: 'Overview', link: '/' },
@@ -23,6 +24,7 @@ export default withMermaid(
         { text: 'Command Workflow', link: '/commands' },
         { text: 'How It Works', link: '/how-it-works' },
         { text: 'Extending the Catalog', link: '/extending' },
+        { text: 'Governance', link: '/governance' },
       ],
     },
   })

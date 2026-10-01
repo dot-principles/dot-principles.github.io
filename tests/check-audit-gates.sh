@@ -1,23 +1,23 @@
 #!/usr/bin/env bash
-# check-audit-gates.sh — Verify that Phase 8–10 gate language is intact in all interactive audit files.
+# check-audit-gates.sh — Verify that the Phase 8–10 gate language is intact, and that the audit
+# core still hands over to it. The gates live in the fix-flow reference file, which dot-audit
+# reads only after it has findings; the core must point at it and keep the approval rule.
 # Run locally before pushing, or via CI on PRs that touch audit/skill files.
 # Usage: ./tests/check-audit-gates.sh [repo-root]
 set -euo pipefail
 
 REPO_ROOT="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
 
-# All interactive audit files must be checked.
-# .agents/skills/ is the canonical install location (run `./install.sh vendor .` first).
-# .github/prompts/ is a thin wrapper with no gate content — not checked here.
-AUDIT_FILES=(
-  "$REPO_ROOT/.agents/skills/dot-audit/SKILL.md"
-  "$REPO_ROOT/commands/dot/audit.md"
+# Gate files: the source, and the installed copy (run `./install.sh vendor .` first).
+GATE_FILES=(
+  "$REPO_ROOT/commands/dot/.audit-fix-flow.md"
+  "$REPO_ROOT/.agents/skills/dot-audit/fix-flow.md"
 )
 
-# Files that use plain-text output (not ask_user tool) must include the hard-stop phrase.
-PLAIN_TEXT_FILES=(
-  "$REPO_ROOT/.agents/skills/dot-audit/SKILL.md"
+# Core files: the command source and the installed skill. They must not lose the handover.
+CORE_FILES=(
   "$REPO_ROOT/commands/dot/audit.md"
+  "$REPO_ROOT/.agents/skills/dot-audit/SKILL.md"
 )
 
 ERRORS=0
@@ -26,7 +26,7 @@ check() {
   local file="$1"
   local pattern="$2"
   local label="$3"
-  if ! grep -qF "$pattern" "$file"; then
+  if ! grep -qF -- "$pattern" "$file"; then
     echo "FAIL [$label]"
     echo "     File   : $file"
     echo "     Missing: $pattern"
@@ -34,7 +34,7 @@ check() {
   fi
 }
 
-for file in "${AUDIT_FILES[@]}"; do
+for file in "${GATE_FILES[@]}"; do
   if [[ ! -f "$file" ]]; then
     echo "FAIL [file-exists] Missing file: $file"
     ERRORS=$((ERRORS + 1))
@@ -57,24 +57,34 @@ for file in "${AUDIT_FILES[@]}"; do
   check "$file" "Shall I open a pull request"                   "$name: Phase 10 PR question"
   check "$file" "Yes, open PR"                                  "$name: Phase 10 Yes choice"
   check "$file" "No, keep the branch"                           "$name: Phase 10 No choice"
-done
 
-# Plain-text output files (not using ask_user tool) must include the explicit hard-stop phrase
-# for all three gates (Phase 8, 9, and 10 each end with this instruction).
-for file in "${PLAIN_TEXT_FILES[@]}"; do
-  [[ -f "$file" ]] || continue
-  name="$(basename "$file")"
+  # Gates use plain-text output (not an ask_user tool), so each must end with the hard-stop phrase
+  # (Phases 8, 9 and 10 each end with this instruction).
   count=$(grep -cF "End your response here. Do not call any tools" "$file" || true)
   if [[ "$count" -lt 3 ]]; then
     echo "FAIL [$name: hard-stop count]"
     echo "     File   : $file"
-    echo "     Expected: 3 occurrences of hard-stop (Phases 8, 9, 10); found: $count"
+    echo "     Expected: at least 3 occurrences of hard-stop (Phases 8, 9, 10); found: $count"
     ERRORS=$((ERRORS + 1))
   fi
 done
 
+for file in "${CORE_FILES[@]}"; do
+  if [[ ! -f "$file" ]]; then
+    echo "FAIL [file-exists] Missing file: $file"
+    ERRORS=$((ERRORS + 1))
+    continue
+  fi
+
+  name="$(basename "$file")"
+
+  check "$file" "fix-flow.md"                                   "$name: hands over to fix-flow.md"
+  check "$file" "explicit user approval"                        "$name: approval rule stated in the core"
+  check "$file" "does **not** grant permission to fix"          "$name: no implied permission to fix"
+done
+
 if [[ $ERRORS -eq 0 ]]; then
-  echo "OK  All Phase 8–10 gate markers verified in ${#AUDIT_FILES[@]} files."
+  echo "OK  All Phase 8–10 gate markers verified in ${#GATE_FILES[@]} files; ${#CORE_FILES[@]} core files hand over to them."
   exit 0
 else
   echo ""

@@ -1,22 +1,22 @@
-# check-audit-gates.ps1 — Verify that Phase 8–10 gate language is intact in all interactive audit files.
+# check-audit-gates.ps1 - Verify that the Phase 8-10 gate language is intact, and that the audit
+# core still hands over to it. The gates live in the fix-flow reference file, which dot-audit
+# reads only after it has findings; the core must point at it and keep the approval rule.
 # Run locally before pushing, or via CI on PRs that touch audit/skill files.
 # Usage: ./tests/check-audit-gates.ps1 [repo-root]
 param(
     [string]$RepoRoot = (Split-Path -Parent $PSScriptRoot)
 )
 
-$AuditFiles = @(
-    Join-Path $RepoRoot ".agents\skills\dot-audit\SKILL.md"
-    Join-Path $RepoRoot ".github\skills\dot-audit\SKILL.md"
-    Join-Path $RepoRoot ".github\prompts\dot-audit.prompt.md"
-    Join-Path $RepoRoot "commands\dot-audit.md"
+# Gate files: the source, and the installed copy (run `./install.sh vendor .` first).
+$GateFiles = @(
+    (Join-Path $RepoRoot "commands\dot\.audit-fix-flow.md"),
+    (Join-Path $RepoRoot ".agents\skills\dot-audit\fix-flow.md")
 )
 
-# Files that use plain-text output (not ask_user tool) must include the hard-stop phrase.
-$PlainTextFiles = @(
-    Join-Path $RepoRoot ".agents\skills\dot-audit\SKILL.md"
-    Join-Path $RepoRoot ".github\skills\dot-audit\SKILL.md"
-    Join-Path $RepoRoot "commands\dot-audit.md"
+# Core files: the command source and the installed skill. They must not lose the handover.
+$CoreFiles = @(
+    (Join-Path $RepoRoot "commands\dot\audit.md"),
+    (Join-Path $RepoRoot ".agents\skills\dot-audit\SKILL.md")
 )
 
 $Errors = 0
@@ -32,7 +32,7 @@ function Check-Marker {
     }
 }
 
-foreach ($file in $AuditFiles) {
+foreach ($file in $GateFiles) {
     if (-not (Test-Path $file)) {
         Write-Host "FAIL [file-exists] Missing file: $file"
         $Errors++
@@ -55,25 +55,34 @@ foreach ($file in $AuditFiles) {
     Check-Marker $file "Shall I open a pull request"                   "$name: Phase 10 PR question"
     Check-Marker $file "Yes, open PR"                                  "$name: Phase 10 Yes choice"
     Check-Marker $file "No, keep the branch"                           "$name: Phase 10 No choice"
-}
 
-# Plain-text output files (not using ask_user tool) must include the explicit hard-stop phrase
-# for all three gates (Phases 8, 9, and 10 each end with this instruction).
-foreach ($file in $PlainTextFiles) {
-    if (-not (Test-Path $file)) { continue }
-    $name = Split-Path -Leaf $file
+    # Gates use plain-text output (not an ask_user tool), so each must end with the hard-stop phrase.
     $content = Get-Content $file -Raw -ErrorAction SilentlyContinue
     $count = ([regex]::Matches($content, [regex]::Escape("End your response here. Do not call any tools"))).Count
     if ($count -lt 3) {
         Write-Host "FAIL [$name: hard-stop count]"
         Write-Host "     File   : $file"
-        Write-Host "     Expected: 3 occurrences of hard-stop (Phases 8, 9, 10); found: $count"
-        $script:Errors++
+        Write-Host "     Expected: at least 3 occurrences of hard-stop (Phases 8, 9, 10); found: $count"
+        $Errors++
     }
 }
 
+foreach ($file in $CoreFiles) {
+    if (-not (Test-Path $file)) {
+        Write-Host "FAIL [file-exists] Missing file: $file"
+        $Errors++
+        continue
+    }
+
+    $name = Split-Path -Leaf $file
+
+    Check-Marker $file "fix-flow.md"                                   "$name: hands over to fix-flow.md"
+    Check-Marker $file "explicit user approval"                        "$name: approval rule stated in the core"
+    Check-Marker $file "does **not** grant permission to fix"          "$name: no implied permission to fix"
+}
+
 if ($Errors -eq 0) {
-    Write-Host "OK  All Phase 8-10 gate markers verified in $($AuditFiles.Count) files."
+    Write-Host "OK  All Phase 8-10 gate markers verified in $($GateFiles.Count) files; $($CoreFiles.Count) core files hand over to them."
     exit 0
 } else {
     Write-Host ""

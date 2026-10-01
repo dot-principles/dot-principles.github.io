@@ -17,7 +17,9 @@ What it does:
 - scans the repo tree
 - detects stacks, artifact types, and domain signals
 - proposes `.principles` files at the right directory levels
-- emits the generated instruction files agents use for fast resolution
+- asks once before writing, then generates the review files: `.agents/instructions/review.md` for any agent that reads `AGENTS.md`, `.github/instructions/` for Copilot Code Review and `REVIEW.md` for Claude Code Review
+
+`/dot-scout --explain <path>` shows which principles apply to a path and why. `/dot-scout --yes` skips the confirmation question.
 
 ## `dot-audit`
 
@@ -31,10 +33,14 @@ Use it when:
 
 What it does:
 
-- resolves the active rules
-- loads the underlying principle content
+- resolves the active rules (organization locks and waivers included)
+- loads the guidance for just those principles and runs their pre-scan patterns in one step
 - reviews the chosen scope
 - reports findings such as critical, high, medium, and low severity issues
+
+## Review without a command
+
+The generated `.agents/instructions/review.md` makes the review work in any agent that reads `AGENTS.md`: ask Claude Code, Codex CLI or Copilot CLI to review a change and it follows the file. `/dot-audit` adds the findings report, `audit-output.json` and the optional fix, commit and pull request workflow.
 
 ## Typical flow
 

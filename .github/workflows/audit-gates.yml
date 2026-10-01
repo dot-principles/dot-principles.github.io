@@ -22,3 +22,15 @@ jobs:
         run: bash ./tests/check-uninstall-generated.sh
       - name: Verify documentation has no stale references
         run: bash ./tests/check-stale-docs.sh
+      - name: Verify principle resolution (hierarchy, lock, waivers)
+        run: bash ./tests/check-resolve.sh
+      - name: Verify generated review files
+        run: bash ./tests/check-emit.sh
+      - name: Verify org baseline (:extends)
+        run: bash ./tests/check-extends.sh
+      - name: Verify vendor refresh
+        run: bash ./tests/check-vendor-refresh.sh
+      - name: Verify uninstall --purge
+        run: bash ./tests/check-uninstall-purge.sh
+      - name: Verify prescan
+        run: bash ./tests/check-prescan.sh

@@ -14,7 +14,7 @@ scan_files() {
     find . -type f \( -name '*.md' -o -name '*.yaml' -o -name '*.ps1' -o -name '*.cmd' \) \
         ! -path './node_modules/*' ! -path './.git/*' ! -path './.vitepress/*' \
         ! -path './.agents/*' ! -path './.idea/*' \
-        ! -name 'CHANGELOG.md'
+        ! -name 'CHANGELOG.md' -print0
 }
 
 RULES=(
@@ -33,28 +33,29 @@ RULES=(
     'fork advice|[Ff]ork this repo(sitory)?(\*\*)? and add|'
 )
 
+# One grep per rule over the whole file list (a grep per file and rule is very slow on Windows).
+FILES="$(mktemp)"
+trap 'rm -f "$FILES"' EXIT
+scan_files > "$FILES"
+
 failures=0
-while IFS= read -r file; do
-    for rule in "${RULES[@]}"; do
-        label="${rule%%|*}"
-        rest="${rule#*|}"
-        allowed="${rest##*|}"
-        regex="${rest%|*}"
+for rule in "${RULES[@]}"; do
+    label="${rule%%|*}"
+    rest="${rule#*|}"
+    allowed="${rest##*|}"
+    regex="${rest%|*}"
 
-        skip=false
-        for ok in $allowed; do
-            [ "$file" = "$ok" ] && skip=true
-        done
-        [ "$skip" = true ] && continue
-
-        if matches="$(grep -nE "$regex" "$file" 2>/dev/null)"; then
-            while IFS= read -r line; do
-                echo "FAIL [$label] $file:$line"
-            done <<< "$matches"
-            failures=$((failures + 1))
-        fi
+    matches="$(xargs -0 grep -nHE -- "$regex" < "$FILES" 2>/dev/null || true)"
+    for ok in $allowed; do
+        matches="$(grep -vF -- "$ok:" <<< "$matches" || true)"
     done
-done < <(scan_files)
+    if [ -n "$matches" ]; then
+        while IFS= read -r line; do
+            echo "FAIL [$label] $line"
+            failures=$((failures + 1))
+        done <<< "$matches"
+    fi
+done
 
 if [ "$failures" -gt 0 ]; then
     echo "$failures stale-documentation finding(s). Update the docs, or add the file to the rule's allow-list with a reason."

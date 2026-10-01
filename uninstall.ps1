@@ -8,6 +8,8 @@
 .EXAMPLE
     .\uninstall.ps1
     .\uninstall.ps1 ~/projects/my-app
+    .\uninstall.ps1 ~/projects/my-app --purge --dry-run
+    .\uninstall.ps1 ~/projects/my-app --purge
 #>
 
 if (-not (Get-Command bash -ErrorAction SilentlyContinue)) {

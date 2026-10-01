@@ -31,10 +31,10 @@ Each file can:
 
 - add a group such as `@spring-boot`
 - activate a specific principle ID such as `CODE-RL-IDEMPOTENCY`
-- suppress a principle with `!ID`
-- apply directives such as `:max_principles`
+- suppress a principle with `!ID` (or a whole group with `!@group`)
+- apply directives such as `:max_principles`, or, for governance, `:lock` and `:waive` (see [Governance](governance.md))
 
-That gives you a hierarchy that behaves much like `.gitignore`: broad defaults at the root, more specific intent deeper in the tree.
+That gives you a hierarchy that behaves much like `.gitignore`: broad defaults at the root, more specific intent deeper in the tree. The deepest file that mentions a principle decides, so a subdirectory can remove something the root added with `!ID`, and a deeper directory can add it back again with a group or an ID. `/dot-scout --explain <path>` shows which file did what.
 
 ## 3. Resolution walks from the file to the root
 
@@ -66,8 +66,9 @@ The framework does not assume everything is source code. It detects artifact typ
 
 ## 5. The command workflow applies the rules
 
-- `dot-scout` helps create and refresh the hierarchy.
+- `dot-scout` helps create and refresh the hierarchy, and generates the review files agents read.
 - `dot-audit` reviews the result against those rules after coding.
+- Any agent can review a change by following `.agents/instructions/review.md`, which `dot-scout` keeps in step with your `.principles` files.
 
 That is the practical loop:
 

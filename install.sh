@@ -121,6 +121,7 @@ else
             install_vendor "$DIR_ARG"
             mark_targets vendor
             write_install_cfg "$DIR_ARG"
+            refresh_generated "$DIR_ARG"
             ;;
         --list|-l)
             require_dir "$DIR_ARG"

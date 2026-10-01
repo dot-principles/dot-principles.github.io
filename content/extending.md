@@ -47,6 +47,8 @@ An organization can give every team the same standards in four steps:
 
 The usual hierarchy still applies: a subdirectory can add more groups or exclude a rule where the local context differs. Re-run `./install.sh vendor <project>` after updating the catalog, and pin the catalog to a tag or commit in CI for reproducible results.
 
+To make some principles required and give teams a documented way to pause others, see [Governance](governance.md).
+
 ## When to extend instead of contributing upstream
 
 Use an extra catalog when the rule is:

@@ -8,7 +8,7 @@
 
 | Command | Purpose |
 |---------|---------|
-| `dot-scout` | Analyse a project, detect its stack, and create `.principles` files |
+| `dot-scout` | Analyse a project, detect its stack, create `.principles` files, and generate the review files agents use |
 | `dot-audit` | Review code against activated principles - find, fix, commit, and open a PR |
 
 ---
@@ -89,6 +89,18 @@ Each `.principles` file activates the groups and individual principles relevant 
 ```
 
 Each `@group` expands to a curated set of principles from the catalog. Subdirectory `.principles` files can layer on more specific groups (e.g. `@schema`, `@docs`) or suppress individual principles with `!ID`.
+
+**What else `dot-scout` writes:** it asks once ("Proceed?"), then one script generates the files the review tools read - the same files every time for the same `.principles` files:
+
+```
+.agents/principles-catalog/active.md      every active principle with its summary
+.agents/instructions/review.md            review instructions for any agent that reads AGENTS.md
+AGENTS.md                                 a short block pointing at review.md
+.github/instructions/*.instructions.md    Copilot Code Review (if enabled)
+REVIEW.md                                 Claude Code Review (if enabled)
+```
+
+Ask Claude Code, Codex CLI or Copilot CLI to review a change and it follows `review.md`: it first runs `emit.sh --check` (is the list still current?), then reviews against the principles. Check what applies to any path with `dot-scout --explain src/payments`.
 
 ---
 
@@ -295,8 +307,9 @@ The generated PR includes a structured summary explaining every change:
 ## The Full Workflow
 
 ```
-dot-scout          →  analyse project, create .principles files
+dot-scout          →  analyse project, create .principles files, generate review files
 dot-audit <target> →  review, fix, commit, and ship
+any agent          →  review a change by following .agents/instructions/review.md
 ```
 
 > `.principles` doesn't teach the AI - the AI already knows SOLID, OWASP, DDD, and the rest.

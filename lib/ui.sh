@@ -208,6 +208,7 @@ interactive_install() {
 
     mark_targets vendor
     write_install_cfg "$project_dir"
+    refresh_generated "$project_dir"
 
     # ── Summary ───────────────────────────────────────────────────────────
     local has_review=false

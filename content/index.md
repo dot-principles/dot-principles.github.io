@@ -14,13 +14,15 @@ This is not a replacement for specs, tests, or human judgment. It is the missing
 - [Commands](commands.md) - see what `dot-scout` and `dot-audit` each do
 - [How It Works](how-it-works.md) - understand the hierarchy, artifact types, and resolution model
 - [Extending](extending.md) - add your own catalog without forking the project
+- [Governance](governance.md) - org baseline, locks and waivers for organizations
 
 ## What makes it different
 
 - It is **plain-text and Git-native**. Principle files are Markdown. Selection files are tiny `.principles` files.
 - It works across **more than source code**: docs, infra, config, schemas, and pipelines.
 - It is **hierarchical**. A repo root can set broad defaults, while subdirectories add or suppress rules where local context differs.
-- It is **agent-oriented**. `dot-scout` configures the principle map; `dot-audit` checks the result afterward.
+- It is **agent-oriented**. `dot-scout` configures the principle map and generates review instructions any agent can follow; `dot-audit` checks the result afterward.
+- It is **built for organizations**. An org baseline can lock principles and give teams a documented, time-limited way to pause them.
 
 ## Canonical deep references
 
