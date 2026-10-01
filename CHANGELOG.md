@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+**Added**
+
+- **Review evaluation kit (`evals/`)** - measures whether a review with `.principles` finds more real problems than the agent's own review. `prepare.sh` builds a fresh project outside the repository for one of three arms (the agent alone, generated review files, or the `dot-audit` skills), `score.sh` computes recall, precision, duplicates and findings on clean files against an answer table (or from `audit-output.json`), and a small synthetic Python corpus holds seeded bugs and seeded principle violations. `tests/check-evals.sh` runs in CI. `run.sh` runs a review headlessly with `claude -p` and scores it. `score.sh --file-only` scores at file level, because agents count lines unreliably. The README states the decision rule before any run.
+
 **Fixed**
 
 - **`dot-audit` on `commands/` reviewed almost nothing** - `commands/.principles` excluded `@docs`, `@source-code` and `@ptac`, so the required audit before merging checked one principle. It now excludes only `@source-code`; the docs and plain-text principles apply to the command files.

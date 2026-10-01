@@ -34,3 +34,5 @@ jobs:
         run: bash ./tests/check-uninstall-purge.sh
       - name: Verify prescan
         run: bash ./tests/check-prescan.sh
+      - name: Verify review evaluation kit
+        run: bash ./tests/check-evals.sh

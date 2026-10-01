@@ -1,0 +1,11 @@
+case	file	line_start	line_end	kind	label	description
+d01	d01/pagination.py	12	13	defect	off-by-one	Slice end drops the last item of every page
+d02	d02/tags.py	4	4	defect	mutable-default	Mutable default argument is shared between calls
+d03	d03/users.py	11	11	defect	sql-injection	SQL built from the user-supplied name
+d04	d04/report.py	5	9	defect	resource-leak	File is never closed on the early return
+d05	d05/accounts.py	6	6	defect	identity-compare	"is" compares identity, not string equality
+d06	d06/stats.py	9	9	defect	divide-by-zero	Empty input divides by zero despite the documented 0.0
+d07	d07/sessions.py	12	12	defect	timezone	UTC expiry compared with local naive time
+d08	d08/files.py	8	8	defect	path-traversal	User-supplied filename can escape the upload directory
+c01	c01/inventory.py	0	0	clean	-	No defect
+c02	c02/slugs.py	0	0	clean	-	No defect

@@ -1,0 +1,11 @@
+case	file	line_start	line_end	kind	label	description
+v01	v01/loader.py	8	15	violation	CODE-CS-FAIL-FAST	Missing config is swallowed and startup continues with a default
+v02	v02/sync.py	10	11	violation	CODE-CS-CATCH-SPECIFIC-EXCEPTIONS	Broad except that silently drops failures
+v03	v03/mailer.py	5	5	violation	INFRA-NO-SECRETS-IN-CODE	API key committed in source
+v04	v04/handler.py	7	9	violation	CODE-SEC-VALIDATE-INPUT	Request parameters used without validation or bounds check
+v05	v05/process.py	4	10	violation	CODE-DX-NAMING	Names that do not reveal intent
+v06	v06/exporters.py	4	27	violation	CODE-CS-DRY	Three identical exporter functions
+v07	v07/invoice.py	4	35	violation	CODE-DX-SMALL-FUNCTIONS	One long function with deeply nested branches
+v08	v08/settings.py	3	13	violation	CODE-CC-PREFER-IMMUTABLE	Shared mutable dict mutated from several threads
+c01	c01/greeting.py	0	0	clean	-	No violation
+c02	c02/temperature.py	0	0	clean	-	No violation

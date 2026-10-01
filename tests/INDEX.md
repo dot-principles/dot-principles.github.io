@@ -13,4 +13,5 @@
 | [check-extends.sh](check-extends.sh) | `:extends` org baseline: local and pinned git sources, `principles.lock`, errors |
 | [check-vendor-refresh.sh](check-vendor-refresh.sh) | `vendor` keeps scouted projects' generated files current |
 | [check-uninstall-purge.sh](check-uninstall-purge.sh) | `uninstall.sh --purge`: removes `.principles` files and leftovers, keeps what is not yours, `--dry-run` |
+| [check-evals.sh](check-evals.sh) | `evals/`: corpus matches the answer tables, `score.sh` arithmetic, `prepare.sh` arms, `run.sh` with a stub `claude` |
 | [check-prescan.sh](check-prescan.sh) | `lib/prescan.sh`: hits, INSPECTED/SEMANTIC records, build output and git-ignored files dropped |

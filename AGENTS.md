@@ -131,6 +131,7 @@ bash tests/check-extends.sh
 bash tests/check-vendor-refresh.sh
 bash tests/check-uninstall-purge.sh
 bash tests/check-prescan.sh
+bash tests/check-evals.sh
 ```
 
 All checks must pass (exit 0). These tests verify that the interactive audit workflow
@@ -138,7 +139,7 @@ gates (Phases 8-10 of `dot-audit`) remain intact, retired command assets are rem
 upgrade, `index.tsv` lists only vendored extra-catalog principles, uninstall removes
 scout-generated review files, the docs do not describe removed behaviour, principle
 resolution (hierarchy, org lock, waivers) and the generated review files are correct and
-deterministic, `:extends` vendors an org baseline, and `vendor` keeps scouted projects' files current.
+deterministic, `:extends` vendors an org baseline, `vendor` keeps scouted projects' files current, and the review evaluation kit (`evals/`) scores and prepares runs correctly.
 
 ---
 

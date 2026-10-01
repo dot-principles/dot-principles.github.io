@@ -752,6 +752,8 @@ Analyses a project directory, creates or updates `.principles` files, then gener
 
 The scripts are covered by `tests/check-resolve.sh`, `tests/check-emit.sh` and `tests/check-prescan.sh`; `tests/check-vendor-refresh.sh` covers the vendored copy.
 
+Whether a review that uses these scripts and principles beats the agent's own review is measured by the evaluation kit in `evals/`, not assumed: the same seeded files are reviewed under three arms and scored against answer tables kept outside the reviewed project (`evals/README.md`, `tests/check-evals.sh`).
+
 ---
 
 ## 10. Installer targets
