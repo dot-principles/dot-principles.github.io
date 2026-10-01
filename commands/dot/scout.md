@@ -50,7 +50,9 @@ Analyse the target directory (and subdirectories) to build a profile per directo
 | Signal | Language / Framework |
 |--------|---------------------|
 | `*.java`, `pom.xml`, `build.gradle` | Java |
+| `*.kt`, `*.kts`, `build.gradle.kts` | Kotlin |
 | `*.ts`, `tsconfig.json` | TypeScript |
+| `*.js`, `*.mjs`, `package.json` without `tsconfig.json` | JavaScript |
 | `*.py`, `pyproject.toml`, `requirements.txt` | Python |
 | `*.go`, `go.mod` | Go |
 | `*.cs`, `*.csproj`, `*.sln` | C# |
@@ -80,7 +82,8 @@ Analyse the target directory (and subdirectories) to build a profile per directo
 |-------------------|---------------|-------|
 | `docs/`, `*.md` files (README, DESIGN, ADR, CONTRIBUTING) | docs | `@docs` |
 | `.github/workflows/`, `Jenkinsfile`, `*.gitlab-ci.yml`, `azure-pipelines.yml` | pipeline | `@pipeline` |
-| `*.tf`, `*.tfvars`, `Dockerfile`, `docker-compose.*`, `Chart.yaml`, `k8s/`, `infra/`, `terraform/` | infra | `@infra` |
+| `Dockerfile`, `docker-compose.*`, `Chart.yaml`, `k8s/` | infra | `@container` |
+| `*.tf`, `*.tfvars`, `infra/`, `terraform/` | infra | no group; add `CODE-AR-INFRASTRUCTURE-AS-CODE` and `CODE-AR-IMMUTABLE-INFRASTRUCTURE` as bare IDs |
 | `*.proto`, `*.graphql`, `openapi.yaml`, `swagger.yaml`, `schema.sql` | schema | `@schema` |
 | `.env`, `application.yaml`, `appsettings.json`, `*.properties` | config | `@config` |
 
@@ -97,7 +100,7 @@ For projects with multiple subdirectories, detect profiles per directory:
 - `src/security/`, `src/auth/` - security-focused principles
 - `frontend/`, `ui/`, `web/` - UI interaction principles
 - `docs/`, `doc/` - documentation principles (`@docs`)
-- `infra/`, `terraform/`, `k8s/`, `deploy/` - infrastructure principles (`@infra`)
+- `infra/`, `terraform/`, `k8s/`, `deploy/` - infrastructure principles (`@container`, or the bare IDs above)
 - `.github/workflows/` - pipeline principles (`@pipeline`)
 - Any directory matching an extension-based detection rule (Phase 1.2) - apply the group from that rule
 
@@ -115,10 +118,10 @@ Based on the profile map from Phase 2, propose where to place `.principles` file
 
 List the available groups with `ls {{PRINCIPLES_DIRECTORY}}/groups/` and reference them by filename without `.yaml`. The common ones are:
 
-**Language groups:** `java`, `typescript`, `python`, `go`, `csharp`, `rust`
+**Language groups:** `java`, `kotlin`, `typescript`, `javascript`, `python`, `go`, `csharp`, `rust` (the catalog has more; `ls` shows them all)
 **Framework groups:** `spring-boot`, `spring-data-jpa`, `react`, `angular`, `django`, `fastapi`
 **Cross-cutting code groups:** `microservices`, `security-focused`
-**Artifact-type groups:** `docs`, `infra`, `config`, `schema`, `pipeline`
+**Artifact-type groups:** `docs`, `container`, `config`, `schema`, `pipeline`
 
 Custom groups from extra catalogs or an org baseline appear in the same directory. Groups suggested by extension detection rules (Phase 1.2) are included automatically.
 
@@ -137,11 +140,11 @@ Groups overlap: every language group includes `source-code`, and `kotlin` includ
 
 Before writing, check whether any parent-level proposals would generate unnecessary exclusions in child directories.
 
-### When to run
+#### When to run
 
 Only when the profile map from Phase 2 contains **two or more** directories that would each receive their own `.principles` file (i.e., there is at least one parent-child pair in the proposed hierarchy). Skip this phase entirely if every proposed `.principles` file is a leaf with no applicable children.
 
-### Algorithm
+#### Algorithm
 
 For each proposed parent `.principles` file (root or intermediate directory), evaluate every proposed entry - groups (`@group`) and bare principle IDs - against all proposed child directories detected in Phase 2:
 
@@ -157,14 +160,14 @@ For each proposed parent `.principles` file (root or intermediate directory), ev
 
 Skip analysis for any parent with `applicable_children ≤ 1` (a majority cannot be computed from a single child).
 
-### Reporting demotions and consolidations
+#### Reporting demotions and consolidations
 
 After running the analysis, show a summary before the updated proposals if any changes were made:
 
 ```
 Exclusion density analysis:
   ⬇ @docs demoted from root → docs/ - excluded in 3/4 children
-  ⬇ @infra demoted from root → infra/, deploy/ - excluded in 3/4 children
+  ⬇ @container demoted from root → infra/, deploy/ - excluded in 3/4 children
   ↑ !CODE-TS-TEST-FIRST consolidated to src/ - excluded in 4/5 children
 
 Updated proposals incorporate these changes.
@@ -204,7 +207,7 @@ Determine final action per file: `created` | `updated` | `unchanged`
 
 ## Phase 5 - Write Files and Report
 
-Write or update each file as determined in Phase 5.
+Write or update each file as determined in Phase 4.
 
 ### File format
 

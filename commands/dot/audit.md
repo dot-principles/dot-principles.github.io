@@ -102,7 +102,7 @@ Record the source as `.principles hierarchy (N files)` (count the `FILE` records
 
 ## Phase 3 - Dynamic Detection (fallback)
 
-**Only if explicit-mode is false AND the resolved set contains nothing beyond the seeded universal and stack Layer 1 principles** (the project has no `.principles` files).
+**Only if explicit-mode is false AND the `resolve.sh` output of Phase 2 has no `FILE` record** (the project has no `.principles` files). If `.principles` files exist, their result stands, even when it is small or empty because they exclude principles on purpose.
 
 Read `{{PRINCIPLES_DIRECTORY}}/layers/<detected-type>/layer-2-contexts.yaml` and activate **all** contexts whose signals appear in the target content; add their `activate` IDs to the active set. If `layer-3-risk-signals.yaml` exists, scan for its signals; for each matching category add its `elevate` IDs to an **elevated set** - violations of elevated principles are promoted one severity level (Low→Medium, Medium→High, High→Critical).
 

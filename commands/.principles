@@ -1,5 +1,4 @@
-# The commands/ directory contains slash-command source files for AI tools.
-# These are templates, not documentation or source code — suppress all inherited principles.
-!@docs
+# The commands/ directory contains slash-command source files for AI tools: prose instructions
+# for an agent, with a few shell snippets. The docs and plain-text principles apply to them;
+# the source-code principles do not.
 !@source-code
-!@ptac

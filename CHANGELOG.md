@@ -10,6 +10,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+**Fixed**
+
+- **`dot-audit` on `commands/` reviewed almost nothing** - `commands/.principles` excluded `@docs`, `@source-code` and `@ptac`, so the required audit before merging checked one principle. It now excludes only `@source-code`; the docs and plain-text principles apply to the command files.
+- **`dot-audit` Phase 3 (dynamic detection) overrode deliberate exclusions** - it ran whenever the resolved set was small, so a project whose `.principles` files excluded everything got principles activated anyway. It now runs only when `resolve.sh` reports no `.principles` file.
+- **`dot-audit` fix flow committed with `git add -A`**, which put the user's unrelated uncommitted changes in the fix commit. It now stages only the files changed by the fixes.
+- **`dot-scout` named a group that does not exist and left out others** - `@infra` is not a group (Docker and Kubernetes files use `@container`; Terraform files get the infrastructure principles as bare IDs), and Kotlin and JavaScript were missing from the detection table and the language list. Also corrected a wrong phase reference and the heading levels of the density analysis, and removed a repeated "no findings, stop" rule from the fix flow.
+
 ---
 
 ## [v0.16.0] - 2026-10-01
